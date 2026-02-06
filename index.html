@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Akash Calculator</title>
+    <style>
+        /* CSS Variables for White/Light Theme */
+        :root {
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --calc-bg: #ffffff;
+            --calc-border: #e2e8f0;
+            --calc-shadow: 0 20px 40px rgba(148, 163, 184, 0.25);
+            --text-main: #1e293b;
+            --text-secondary: #94a3b8;
+            --text-heading: #0f172a;
+            
+            --btn-num-bg: #f1f5f9;
+            --btn-num-hover: #e2e8f0;
+            --btn-num-text: #334155;
+            
+            --btn-op-bg: #ffffff;
+            --btn-op-text: #3b82f6;
+            --btn-op-hover: #eff6ff;
+            
+            --btn-special-bg: #fee2e2;
+            --btn-special-text: #ef4444;
+            --btn-special-hover: #fecaca;
+            
+            --btn-equal-bg: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+            --btn-equal-hover: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+            --btn-equal-text: #ffffff;
+            
+            --display-bg: #f8fafc;
+            --display-text: #0f172a;
+
+            /* New Variables for Scrolling Slide */
+            --card-bg: #ffffff;
+            --card-border: #f1f5f9;
+            --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        * {
+            padding: 0;
+            margin: 0;
+            box-sizing: border-box;
+            outline: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            min-height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            /* Allow body to scroll naturally on small screens if content exceeds height */
+            overflow-y: auto;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-main);
+            padding: 20px;
+        }
+
+        .container {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            max-width: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin-bottom: 30px; /* Space before the scrolling slide */
+        }
+
+        /* Header Section */
+        .app-header {
+            text-align: center;
+            margin-bottom: 25px;
+            animation: fadeInDown 0.8s ease;
+        }
+
+        .app-header h1 {
+            font-size: 2rem;
+            font-weight: 800;
+            color: var(--text-heading);
+            letter-spacing: -0.5px;
+            margin-bottom: 5px;
+        }
+
+        .app-header .features-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.5);
+            padding: 4px 12px;
+            border-radius: 20px;
+            display: inline-block;
+        }
+
+        /* Calculator Body */
+        .calculator {
+            width: 100%;
+            padding: 25px;
+            border-radius: 24px;
+            background: var(--calc-bg);
+            border: 1px solid var(--calc-border);
+            box-shadow: var(--calc-shadow);
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            animation: scaleIn 0.6s ease;
+        }
+
+        /* Display Screen */
+        .display-screen {
+            background: var(--display-bg);
+            border-radius: 16px;
+            padding: 20px;
+            text-align: right;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            min-height: 100px;
+            border: 1px solid rgba(0,0,0,0.03);
+        }
+
+        #display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--display-text);
+            word-wrap: break-word;
+            word-break: break-all;
+            line-height: 1.1;
+            margin-bottom: 5px;
+        }
+
+        .real-time-result {
+            font-size: 1.1rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+            min-height: 1.5rem;
+        }
+
+        /* Button Grid Layout */
+        .buttons {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            border: none;
+            height: 60px;
+            border-radius: 16px;
+            font-size: 1.3rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            user-select: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+        }
+
+        button:active {
+            transform: scale(0.96);
+        }
+
+        /* Button Specifics */
+        .btn-number {
+            background: var(--btn-num-bg);
+            color: var(--btn-num-text);
+        }
+
+        .btn-operator {
+            background: var(--btn-op-bg);
+            color: var(--btn-op-text);
+            font-size: 1.5rem;
+            font-weight: 600;
+            box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.1);
+        }
+
+        #clear, #backspace {
+            background: var(--btn-special-bg);
+            color: var(--btn-special-text);
+            font-size: 1.1rem;
+            font-weight: 700;
+        }
+
+        #equal {
+            grid-column: span 4;
+            background: var(--btn-equal-bg);
+            color: var(--btn-equal-text);
+            font-size: 1.5rem;
+            font-weight: 700;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+            margin-top: 5px;
+            height: 55px;
+        }
+        
+        #equal:hover {
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            color: white;
+        }
+
+        /* -----------------------------------------------------------
+           SCROLLING SLIDE SECTION (HAND SCROLLING)
+        ----------------------------------------------------------- */
+        .scrolling-section-container {
+            width: 100%;
+            max-width: 800px; /* Wider to show off the scroll */
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 20px;
+            animation: slideUp 0.8s ease 0.3s backwards;
+        }
+
+        .section-title {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-secondary);
+            font-weight: 700;
+            padding-left: 5px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .scroll-hint {
+            font-size: 0.75rem;
+            background: rgba(59, 130, 246, 0.1);
+            color: #3b82f6;
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* The slider track */
+        .hand-scroll-track {
+            display: flex;
+            gap: 20px;
+            overflow-x: auto;
+            scroll-behavior: smooth;
+            padding: 20px 5px; /* Padding for shadows */
+            cursor: grab;
+            
+            /* Hide Scrollbar */
+            scrollbar-width: none; /* Firefox */
+            -ms-overflow-style: none;  /* IE 10+ */
+            
+            /* Snap effect for neat stopping */
+            scroll-snap-type: x mandatory;
+        }
+
+        .hand-scroll-track::-webkit-scrollbar { 
+            display: none; /* Chrome/Safari */
+        }
+
+        .hand-scroll-track:active {
+            cursor: grabbing;
+        }
+
+        /* Individual Cards */
+        .slide-card {
+            flex: 0 0 auto;
+            width: 260px;
+            height: 140px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 18px;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            box-shadow: var(--card-shadow);
+            scroll-snap-align: center;
+            transition: transform 0.3s ease;
+            user-select: none;
+        }
+
+        .slide-card:hover {
+            transform: translateY(-5px);
+            border-color: #cbd5e1;
+        }
+
+        .card-icon {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+        }
+
+        .card-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--text-heading);
+        }
+
+        .card-desc {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        .created-by {
+            margin-top: auto;
+            margin-bottom: 20px;
+            font-size: 0.8rem;
+            color: #94a3b8;
+            text-align: center;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        /* Animations */
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @media (max-width: 360px) {
+            .calculator { padding: 20px; }
+            button { height: 50px; font-size: 1.1rem; }
+            #display { font-size: 2rem; }
+            .app-header h1 { font-size: 1.6rem; }
+            .slide-card { width: 220px; height: 130px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <!-- Header Section -->
+        <div class="app-header">
+            <h1>Akash Calculator</h1>
+            <div class="features-text">✨ Advanced Scientific &amp; Real-time</div>
+        </div>
+
+        <div class="calculator">
+            <div class="display-screen">
+                <div id="display"></div>
+                <div id="result" class="real-time-result"></div> 
+            </div>
+            
+            <div class="buttons">
+                <!-- Row 1 -->
+                <button class="btn-operator" id="clear">C</button>
+                <button class="btn-operator" id="/">/</button>
+                <button class="btn-operator" id="*">×</button>
+                <button class="btn-operator" id="backspace">⌫</button>
+                
+                <!-- Row 2 -->
+                <button class="btn-number" id="7">7</button>
+                <button class="btn-number" id="8">8</button>
+                <button class="btn-number" id="9">9</button>
+                <button class="btn-operator" id="-">−</button>
+                
+                <!-- Row 3 -->
+                <button class="btn-number" id="4">4</button>
+                <button class="btn-number" id="5">5</button>
+                <button class="btn-number" id="6">6</button>
+                <button class="btn-operator" id="+">+</button>
+                
+                <!-- Row 4 -->
+                <button class="btn-number" id="1">1</button>
+                <button class="btn-number" id="2">2</button>
+                <button class="btn-number" id="3">3</button>
+                <button class="btn-operator" id="%">%</button>
+                
+                <!-- Row 5 -->
+                <button class="btn-operator" id="(">(</button>
+                <button class="btn-number" id="0">0</button>
+                <button class="btn-operator" id=")">)</button>
+                <button class="btn-number" id=".">.</button>
+                
+                <!-- Row 6 -->
+                <button id="equal">=</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- NEW: Scrolling Slide Section -->
+    <div class="scrolling-section-container">
+        <div class="section-title">
+            Quick Tips & Shortcuts <span class="scroll-hint">← Drag to Scroll →</span>
+        </div>
+        
+        <div class="hand-scroll-track" id="scrollTrack">
+            <!-- Card 1 -->
+            <div class="slide-card">
+                <div class="card-icon">⌨️</div>
+                <div class="card-content">
+                    <div class="card-title">Keyboard Support</div>
+                    <div class="card-desc">Use your physical keyboard to type numbers, Enter for equals, and Backspace to delete.</div>
+                </div>
+            </div>
+
+            <!-- Card 2 -->
+            <div class="slide-card">
+                <div class="card-icon">%</div>
+                <div class="card-content">
+                    <div class="card-title">Easy Percentage</div>
+                    <div class="card-desc">Type a number, then hit % to instantly convert it to a decimal value.</div>
+                </div>
+            </div>
+
+            <!-- Card 3 -->
+            <div class="slide-card">
+                <div class="card-icon">💡</div>
+                <div class="card-content">
+                    <div class="card-title">Brackets Priority</div>
+                    <div class="card-desc">Use ( ) to perform calculations inside brackets first, just like real math.</div>
+                </div>
+            </div>
+
+            <!-- Card 4 -->
+            <div class="slide-card">
+                <div class="card-icon">🖱️</div>
+                <div class="card-content">
+                    <div class="card-title">Hand Scrolling</div>
+                    <div class="card-desc">Click and drag this area left or right to browse through cards smoothly.</div>
+                </div>
+            </div>
+
+             <!-- Card 5 -->
+             <div class="slide-card">
+                <div class="card-icon">🔒</div>
+                <div class="card-content">
+                    <div class="card-title">Secure & Local</div>
+                    <div class="card-desc">No data is sent to servers. All calculations happen securely in your browser.</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="created-by">
+        Created By Akash Kumar
+    </div>
+
+    <script>
+        const display = document.querySelector("#display");
+        const resultDisplay = document.querySelector("#result");
+        const buttons = document.querySelectorAll("button");
+
+        // Check if the last character is an operator
+        const isLastCharOperator = (expression) => {
+            if (!expression) return false;
+            const lastChar = expression[expression.length - 1];
+            return ['+', '-', '*', '/'].includes(lastChar);
+        }
+
+        // Update the result display in real-time
+        function updateResult() {
+            try {
+                const expression = display.innerText;
+                if (expression && !isLastCharOperator(expression)) {
+                    // Prevent evaluating if it ends with a bracket or empty
+                    resultDisplay.innerText = eval(expression);
+                } else {
+                    resultDisplay.innerText = "";
+                }
+            } catch (error) {
+                resultDisplay.innerText = "";
+            }
+        }
+
+        // Handle Button Clicks
+        buttons.forEach((item) => {
+            item.onclick = () => {
+                handleInput(item.id, item.innerText);
+            };
+        });
+
+        // Unified Input Handler (for Button clicks and Keyboard)
+        function handleInput(id, text) {
+            if (id == "clear" || id === "c" || id === "C") {
+                display.innerText = "";
+                resultDisplay.innerText = "";
+            } else if (id == "backspace" || id === "Backspace") {
+                let string = display.innerText.toString();
+                display.innerText = string.substr(0, string.length - 1);
+                updateResult();
+            } else if (id == "equal" || id === "Enter" || id === "=") {
+                const expression = display.innerText;
+                if (expression && !isLastCharOperator(expression)) {
+                    // Safe eval wrapper
+                    try {
+                        display.innerText = eval(expression);
+                        resultDisplay.innerText = "";
+                    } catch (e) {
+                        display.innerText = "Error";
+                    }
+                } else if (expression === "") {
+                    // Do nothing if empty
+                } else {
+                    display.innerText = "Invalid";
+                    setTimeout(() => (display.innerText = ""), 1000);
+                }
+            } else if (['+', '-', '*', '/'].includes(id)) {
+                const expression = display.innerText;
+                if (expression && !isLastCharOperator(expression)) {
+                    display.innerText += id;
+                }
+            } else if (id == "%") {
+                const expression = display.innerText;
+                if (expression) {
+                    try {
+                        const parts = expression.split(/[\+\-\*\/]/);
+                        const lastPart = parts[parts.length - 1];
+                        if (lastPart && !isLastCharOperator(expression)) {
+                            const percentValue = parseFloat(lastPart) / 100;
+                            const regex = new RegExp(escapeRegExp(lastPart) + "$");
+                            display.innerText = expression.replace(regex, percentValue);
+                            updateResult();
+                        }
+                    } catch (e) {}
+                }
+            } else if (id == ".") {
+                const expression = display.innerText;
+                if (isLastCharOperator(expression) || expression === "") {
+                    display.innerText += "0.";
+                } else {
+                    const parts = expression.split(/[\+\-\*\/]/);
+                    const lastPart = parts[parts.length - 1];
+                    if (!lastPart.includes(".")) {
+                        display.innerText += ".";
+                    }
+                }
+                updateResult();
+            } else if (!isNaN(id)) {
+                // If it's a number passed from ID or value
+                display.innerText += id;
+                updateResult();
+            }
+        }
+
+        function escapeRegExp(string) {
+            return string.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        }
+
+        /* -----------------------------------------------------------
+           KEYBOARD SUPPORT
+        ----------------------------------------------------------- */
+        document.addEventListener('keydown', (e) => {
+            const key = e.key;
+            if((key >= '0' && key <= '9') || ['+', '-', '*', '/', '(', ')', '%', '.'].includes(key)) {
+                handleInput(key, key);
+            } else if (key === 'Enter') {
+                handleInput('equal', '=');
+            } else if (key === 'Backspace') {
+                handleInput('backspace', '');
+            } else if (key.toLowerCase() === 'c') {
+                handleInput('clear', '');
+            }
+        });
+
+        /* -----------------------------------------------------------
+           HAND SCROLLING DRAG LOGIC
+           Allows desktop users to "grab" and drag the slider
+        ----------------------------------------------------------- */
+        const slider = document.querySelector('.hand-scroll-track');
+        let isDown = false;
+        let startX;
+        let scrollLeft;
+
+        slider.addEventListener('mousedown', (e) => {
+            isDown = true;
+            slider.classList.add('active'); // You can use this to change cursor style if needed
+            startX = e.pageX - slider.offsetLeft;
+            scrollLeft = slider.scrollLeft;
+            e.preventDefault(); // Prevent text selection while dragging
+        });
+
+        slider.addEventListener('mouseleave', () => {
+            isDown = false;
+        });
+
+        slider.addEventListener('mouseup', () => {
+            isDown = false;
+        });
+
+        slider.addEventListener('mousemove', (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - slider.offsetLeft;
+            const walk = (x - startX) * 2; // Scroll-fast multiplier
+            slider.scrollLeft = scrollLeft - walk;
+        });
+
+    </script>
+
+</body>
+</html>
